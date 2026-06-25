@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, CheckCircle, AlertTriangle, Eye, EyeOff, Zap } from 'lucide-react';
+import { Mail, Lock, CheckCircle, AlertTriangle, Eye, EyeOff, Zap, User as UserIcon } from 'lucide-react';
 import API from '../services/api';
 import '../styles/auth.css';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const validateInputs = () => {
+    if (!name.trim()) {
+      return "Name is required.";
+    }
+    if (name.trim().length < 2) {
+      return "Name must be at least 2 characters long.";
+    }
     if (!email.trim() || !password || !confirmPassword) {
       return "All fields are required.";
     }
@@ -36,7 +43,7 @@ const Signup = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    
+
     const validationError = validateInputs();
     if (validationError) {
       setError(validationError);
@@ -46,10 +53,11 @@ const Signup = () => {
     setLoading(true);
     try {
       const response = await API.post('/signup', {
+        name: name.trim(),
         email: email.trim(),
         password: password
       });
-      
+
       setSuccess("Account created successfully! Redirecting to login...");
       setTimeout(() => {
         navigate('/login');
@@ -88,6 +96,23 @@ const Signup = () => {
         )}
 
         <form onSubmit={handleSignup} className="auth-form">
+          <div className="form-group">
+            <label className="form-label">Full Name</label>
+            <div className="password-input-wrapper">
+              <input
+                type="text"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={loading}
+                required
+              />
+              <span className="password-toggle-btn" style={{ cursor: 'default' }}>
+                <UserIcon size={18} />
+              </span>
+            </div>
+          </div>
+
           <div className="form-group">
             <label className="form-label">Email Address</label>
             <div className="password-input-wrapper">

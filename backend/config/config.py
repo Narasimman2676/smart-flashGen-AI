@@ -29,5 +29,5 @@ class Config:
 
     # Uploads folder settings
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", os.path.join(backend_root, "uploads"))
-    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 16 * 1024 * 1024))  # 16 MB limit
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", 100 * 1024 * 1024))  # 100 MB limit
     ALLOWED_EXTENSIONS = {'pdf', 'docx', 'txt'}

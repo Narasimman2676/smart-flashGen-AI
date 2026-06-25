@@ -40,6 +40,19 @@ def init_db():
     from backend.models.learning_progress import LearningProgress
     
     Base.metadata.create_all(bind=engine)
+    
+    # Safely migrate users table to add 'name' column if it does not exist
+    try:
+        from sqlalchemy import inspect, text
+        inspector = inspect(engine)
+        columns = [col['name'] for col in inspector.get_columns('users')]
+        if 'name' not in columns:
+            with engine.begin() as connection:
+                # Add nullable name column to existing database
+                connection.execute(text("ALTER TABLE users ADD COLUMN name VARCHAR(255)"))
+    except Exception as e:
+        # Log error but don't prevent application startup
+        print(f"Database migration error adding 'name' column: {e}")
 
 def close_db_session(exception=None):
     """Close the active database session."""

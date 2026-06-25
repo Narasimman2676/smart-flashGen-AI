@@ -60,6 +60,7 @@ def clean_db(app):
 def test_signup_success(client):
     """Test successful user registration."""
     response = client.post('/signup', json={
+        "name": "Test User",
         "email": "user@example.com",
         "password": "securepassword123"
     })
@@ -71,10 +72,34 @@ def test_signup_success(client):
     # Verify user is in database
     user = db_session.query(User).filter_by(email="user@example.com").first()
     assert user is not None
+    assert user.name == "Test User"
+
+def test_signup_invalid_name(client):
+    """Test registration with invalid name format."""
+    response = client.post('/signup', json={
+        "name": " ",
+        "email": "user@example.com",
+        "password": "securepassword123"
+    })
+    assert response.status_code == 400
+    data = response.get_json()
+    assert "error" in data
+    assert "Name is required" in data["error"]
+
+    response = client.post('/signup', json={
+        "name": "A",
+        "email": "user@example.com",
+        "password": "securepassword123"
+    })
+    assert response.status_code == 400
+    data = response.get_json()
+    assert "error" in data
+    assert "Name must be at least 2 characters" in data["error"]
 
 def test_signup_invalid_email(client):
     """Test registration with invalid email format."""
     response = client.post('/signup', json={
+        "name": "Test User",
         "email": "bademailformat.com",
         "password": "password"
     })
@@ -86,6 +111,7 @@ def test_signup_invalid_email(client):
 def test_signup_short_password(client):
     """Test registration with password under 6 characters."""
     response = client.post('/signup', json={
+        "name": "Test User",
         "email": "user@example.com",
         "password": "123"
     })
@@ -98,12 +124,14 @@ def test_signup_duplicate_email(client):
     """Test registering the same email twice."""
     # First signup
     client.post('/signup', json={
+        "name": "Test User",
         "email": "duplicate@example.com",
         "password": "password123"
     })
     
     # Duplicate signup
     response = client.post('/signup', json={
+        "name": "Test User",
         "email": "duplicate@example.com",
         "password": "differentpass"
     })
@@ -116,6 +144,7 @@ def test_login_success(client):
     """Test successful login and receipt of JWT."""
     # Register first
     client.post('/signup', json={
+        "name": "Login User",
         "email": "login@example.com",
         "password": "correctpassword"
     })
@@ -130,11 +159,13 @@ def test_login_success(client):
     assert "access_token" in data
     assert "user" in data
     assert data["user"]["email"] == "login@example.com"
+    assert data["user"]["name"] == "Login User"
 
 def test_login_invalid_credentials(client):
     """Test login failure with incorrect credentials."""
     # Register first
     client.post('/signup', json={
+        "name": "Login User",
         "email": "login@example.com",
         "password": "correctpassword"
     })
@@ -153,6 +184,7 @@ def test_logout_success(client):
     """Test logout invalidates the JWT."""
     # Register and Login to get token
     client.post('/signup', json={
+        "name": "Logout User",
         "email": "logout@example.com",
         "password": "password123"
     })

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   UploadCloud, FileText, CheckCircle, 
-  AlertTriangle, Trash2, ArrowRight, Layers, HelpCircle
+  AlertTriangle, Trash2, ArrowRight, Layers, HelpCircle 
 } from 'lucide-react';
 import API from '../services/api';
 import '../styles/upload.css';
@@ -26,7 +26,6 @@ const Upload = () => {
     const fetchTopics = async () => {
       try {
         const response = await API.get('/progress');
-        // progress endpoint returns list of studied topics
         setTopicsList(response.data);
       } catch (err) {
         console.error('Failed to load topics:', err);
@@ -68,13 +67,13 @@ const Upload = () => {
     const extension = selectedFile.name.split('.').pop().toLowerCase();
     
     if (!allowedExtensions.includes(extension)) {
-      setError("Unsupported file format. Please upload PDF, DOCX or TXT files.");
+      setError("Unsupported file format. Please upload PDF, DOCX, or TXT files.");
       return;
     }
     
-    // Limit to 16MB
-    if (selectedFile.size > 16 * 1024 * 1024) {
-      setError("File size exceeds the 16MB limit.");
+    // Increased upload limit to 100MB as requested
+    if (selectedFile.size > 100 * 1024 * 1024) {
+      setError("File size exceeds the 100MB limit.");
       return;
     }
     
@@ -93,6 +92,14 @@ const Upload = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const handleSubmit = async (e) => {
@@ -121,9 +128,9 @@ const Upload = () => {
       
       const doc = uploadResp.data.document;
       
-      // Step 2: Extracting Text (represented by backend parsing stage)
+      // Step 2: Extracting Text & Parsing
       setActiveStep(2);
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Slight pause for visual fluid transition
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Slight pause for visual transition
       
       // Step 3: Flashcard Generation Pipeline
       setActiveStep(3);
@@ -151,82 +158,103 @@ const Upload = () => {
     }
   };
 
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  const stepLabels = ['Select File', 'Uploading', 'Extracting Text', 'Generating Cards', 'Complete'];
 
   return (
     <div className="upload-container">
-      <div className="upload-card glass-panel">
-        <h1 className="upload-title">Generate Flashcards</h1>
-        <p className="upload-subtitle">Upload PDF, DOCX, or TXT documents to generate study decks</p>
+      {/* Header section */}
+      <div>
+        <h1 style={{ fontSize: '2rem', marginBottom: '6px' }}>Upload Study Notes</h1>
+        <p style={{ color: 'hsl(var(--text-secondary))' }}>Upload documents to dynamically extract key terms and generate interactive flashcards.</p>
+      </div>
+
+      <div className="glass-panel upload-card">
+        {/* Visual Steps progression timeline */}
+        <div className="upload-steps">
+          {stepLabels.map((label, idx) => (
+            <div 
+              key={label} 
+              className={`step-indicator ${
+                activeStep === idx ? 'active' : activeStep > idx ? 'completed' : ''
+              }`}
+            >
+              <div className="step-dot">
+                {activeStep > idx ? '✓' : idx + 1}
+              </div>
+              <div className="step-label">{label}</div>
+            </div>
+          ))}
+        </div>
 
         {error && (
-          <div className="alert alert-error" style={{ marginBottom: '24px' }}>
+          <div className="alert alert-error" style={{ margin: 0 }}>
             <AlertTriangle size={18} />
             <span>{error}</span>
           </div>
         )}
 
+        {/* Dynamic Display based on Uploading stages */}
         {!uploading ? (
-          <form onSubmit={handleSubmit}>
-            {/* Dropzone container */}
+          <form onSubmit={handleSubmit} className="auth-form" style={{ gap: '24px' }}>
             <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
-              style={{ display: 'none' }}
               accept=".pdf,.docx,.txt"
+              style={{ display: 'none' }}
             />
             
-            <div 
-              className={`dropzone ${dragging ? 'dragging' : ''}`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={triggerFileSelect}
-            >
-              <UploadCloud className="dropzone-icon" />
-              <p className="dropzone-text">Drag & drop your document here, or <span className="auth-link">browse</span></p>
-              <p className="dropzone-subtext">Supports PDF, DOCX, and TXT up to 16MB</p>
-            </div>
-
-            {/* Selected File Details */}
-            {file && (
-              <div className="selected-file-info">
-                <FileText size={18} className="file-icon" />
-                <div style={{ flexGrow: 1, overflow: 'hidden' }}>
-                  <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {file.name}
-                  </div>
-                  <div style={{ fontSize: '0.78rem', color: 'hsl(var(--text-muted))' }}>
-                    {formatFileSize(file.size)}
+            {/* File Selection area */}
+            {!file ? (
+              <div 
+                className={`dropzone ${dragging ? 'dragging' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={triggerFileSelect}
+              >
+                <div className="dropzone-icon-container">
+                  <UploadCloud size={32} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span className="dropzone-title">Drag & drop your file here, or browse</span>
+                  <span className="dropzone-subtitle">Supports PDF, DOCX, and TXT files up to 100MB</span>
+                </div>
+              </div>
+            ) : (
+              <div className="file-preview-card">
+                <div className="file-preview-info">
+                  <FileText className="file-icon" size={32} />
+                  <div className="file-name-meta">
+                    <span className="file-name" title={file.name}>{file.name}</span>
+                    <span className="file-size">{formatBytes(file.size)}</span>
                   </div>
                 </div>
-                <button type="button" onClick={removeSelectedFile} className="btn-logout" style={{ padding: '4px' }}>
-                  <Trash2 size={16} style={{ color: 'hsl(var(--text-muted))' }} />
+                <button 
+                  type="button" 
+                  className="btn-remove-file" 
+                  onClick={removeSelectedFile}
+                  title="Remove file"
+                >
+                  <Trash2 size={18} />
                 </button>
               </div>
             )}
 
-            {/* Form Inputs (Topic, Cards Count) */}
-            <div className="config-group">
+            {/* Custom parameters (Topic & Flashcards Count) */}
+            <div className="upload-form-options">
               <div className="form-group">
-                <label className="form-label">Link to Topic</label>
+                <label className="form-label">Associate with Topic</label>
                 <select 
                   value={topicId} 
                   onChange={(e) => {
                     setTopicId(e.target.value);
-                    if (e.target.value) setNewTopicName(''); // Reset custom topic if select is chosen
+                    if (e.target.value) setNewTopicName('');
                   }}
-                  disabled={newTopicName !== ''}
+                  disabled={!!newTopicName}
                 >
                   <option value="">-- Select Existing Topic --</option>
-                  {topicsList.map(t => (
+                  {topicsList.map((t) => (
                     <option key={t.topic_id} value={t.topic_id}>{t.topic_name}</option>
                   ))}
                 </select>
@@ -236,74 +264,69 @@ const Upload = () => {
                 <label className="form-label">Or Create New Topic</label>
                 <input
                   type="text"
-                  placeholder="e.g. Data Structures"
+                  placeholder="e.g. Physics Midterm"
                   value={newTopicName}
                   onChange={(e) => {
                     setNewTopicName(e.target.value);
-                    if (e.target.value) setTopicId(''); // Reset select if typing custom name
+                    if (e.target.value) setTopicId('');
                   }}
-                  disabled={topicId !== ''}
+                  disabled={!!topicId}
                 />
               </div>
             </div>
 
-            <div className="form-group" style={{ marginBottom: '32px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label className="form-label">Number of Cards</label>
-                <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'hsl(var(--primary))' }}>{numCards} Cards</span>
+            <div className="upload-form-options">
+              <div className="form-group">
+                <label className="form-label">Number of Flashcards to Generate</label>
+                <select 
+                  value={numCards} 
+                  onChange={(e) => setNumCards(e.target.value)}
+                >
+                  <option value={5}>5 Flashcards</option>
+                  <option value={10}>10 Flashcards (Recommended)</option>
+                  <option value={15}>15 Flashcards</option>
+                  <option value={20}>20 Flashcards</option>
+                </select>
               </div>
-              <input
-                type="range"
-                min="5"
-                max="30"
-                step="5"
-                value={numCards}
-                onChange={(e) => setNumCards(e.target.value)}
-                style={{ cursor: 'pointer', height: '6px', padding: '0' }}
-              />
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={!file}>
-              <span>Generate Flashcards</span>
-              <ArrowRight size={18} />
+            <button 
+              type="submit" 
+              className="btn btn-primary" 
+              disabled={!file}
+              style={{ width: '100%', marginTop: '8px' }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>Generate Flashcards</span>
+                <ArrowRight size={16} />
+              </span>
             </button>
           </form>
         ) : (
-          /* Multi-step progress pipeline tracker */
-          <div className="pipeline-progress-container">
-            <h3 style={{ fontSize: '1.05rem', marginBottom: '8px', textAlign: 'center' }}>
-              {activeStep === 4 ? "Deck Generated!" : "Analyzing Document..."}
-            </h3>
-            
-            <div className="pipeline-step-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div className={`pipeline-step ${activeStep === 1 ? 'active' : ''} ${activeStep > 1 ? 'completed' : ''}`}>
-                <div className="step-icon-status">
-                  {activeStep === 1 ? <div className="spinner" style={{ width: '14px', height: '14px' }} /> : <div className="step-dot" />}
+          /* Pipeline progress animations */
+          <div style={{ padding: '32px 0' }}>
+            {activeStep < 4 ? (
+              <div className="pipeline-progress-container">
+                <div className="pipeline-status-text">
+                  {activeStep === 1 && "Uploading document files..."}
+                  {activeStep === 2 && "Running NLP text extraction..."}
+                  {activeStep === 3 && "Extracting keywords & formulating flashcards..."}
                 </div>
-                <span>Uploading document to storage...</span>
-              </div>
-
-              <div className={`pipeline-step ${activeStep === 2 ? 'active' : ''} ${activeStep > 2 ? 'completed' : ''}`}>
-                <div className="step-icon-status">
-                  {activeStep === 2 ? <div className="spinner" style={{ width: '14px', height: '14px' }} /> : <div className="step-dot" />}
+                <div className="pipeline-progress-track">
+                  <div className="pipeline-progress-bar" />
                 </div>
-                <span>Extracting raw text layer...</span>
+                <span style={{ fontSize: '0.85rem', color: 'hsl(var(--text-secondary))' }}>
+                  Please do not close this window. The AI pipeline is generating your study material.
+                </span>
               </div>
-
-              <div className={`pipeline-step ${activeStep === 3 ? 'active' : ''} ${activeStep > 3 ? 'completed' : ''}`}>
-                <div className="step-icon-status">
-                  {activeStep === 3 ? <div className="spinner" style={{ width: '14px', height: '14px' }} /> : <div className="step-dot" />}
-                </div>
-                <span>Running AI pipelines (generating questions)...</span>
+            ) : (
+              /* Success confirmation panel */
+              <div className="upload-success-panel">
+                <CheckCircle className="success-icon-animate" size={48} />
+                <h3 style={{ fontSize: '1.4rem', marginTop: '16px', marginBottom: '6px' }}>Generation Complete!</h3>
+                <span style={{ color: 'hsl(var(--text-secondary))' }}>Redirecting to study room to review your new flashcards...</span>
               </div>
-
-              <div className={`pipeline-step ${activeStep === 4 ? 'completed' : ''}`}>
-                <div className="step-icon-status">
-                  {activeStep === 4 ? <CheckCircle size={16} style={{ color: '#64e393' }} /> : <div className="step-dot" />}
-                </div>
-                <span>Success! Redirection in progress...</span>
-              </div>
-            </div>
+            )}
           </div>
         )}
       </div>

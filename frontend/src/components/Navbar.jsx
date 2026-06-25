@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, UploadCloud, Layers, HelpCircle, BarChart3, LogOut, Zap } from 'lucide-react';
+import { 
+  LayoutDashboard, UploadCloud, Layers, 
+  HelpCircle, BarChart3, LogOut, Zap, Menu, X 
+} from 'lucide-react';
 import API from '../services/api';
 
 const Navbar = () => {
@@ -8,6 +11,9 @@ const Navbar = () => {
   const location = useLocation();
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  // Mobile drawer state
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   if (!token) return null;
 
@@ -26,48 +32,88 @@ const Navbar = () => {
   };
 
   const isActive = (path) => location.pathname === path;
+  const username = user.name || (user.email ? user.email.split('@')[0] : 'User');
+  const userInitials = username.substring(0, 2).toUpperCase();
+
+  const navItems = [
+    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/upload', label: 'Upload Notes', icon: UploadCloud },
+    { path: '/flashcards', label: 'Flashcards', icon: Layers },
+    { path: '/quiz', label: 'Quiz', icon: HelpCircle },
+    { path: '/analytics', label: 'Analytics', icon: BarChart3 }
+  ];
 
   return (
-    <nav className="navbar glass-panel">
-      <div className="nav-container">
-        <Link to="/" className="nav-logo">
-          <Zap className="logo-icon" />
-          <span>FlashGen AI</span>
+    <>
+      {/* Mobile Top Header (only visible on mobile screens) */}
+      <header className="mobile-header">
+        <Link to="/" className="sidebar-logo" style={{ padding: 0 }}>
+          <Zap className="sidebar-logo-icon" size={20} />
+          <span style={{ fontSize: '1.15rem' }}>FlashGen AI</span>
         </Link>
-        
-        <div className="nav-links">
-          <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>
-            <LayoutDashboard className="nav-icon" />
-            <span>Dashboard</span>
+        <button 
+          className="mobile-menu-btn" 
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          aria-label="Toggle menu"
+        >
+          {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </header>
+
+      {/* Sidebar overlay for mobile drawer backdrop */}
+      {isMobileOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Main Vertical Sidebar */}
+      <aside className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
+        <div className="sidebar-top">
+          {/* Logo Brand section */}
+          <Link to="/" className="sidebar-logo" onClick={() => setIsMobileOpen(false)}>
+            <Zap className="sidebar-logo-icon" size={22} />
+            <span>FlashGen AI</span>
           </Link>
-          <Link to="/upload" className={`nav-link ${isActive('/upload') ? 'active' : ''}`}>
-            <UploadCloud className="nav-icon" />
-            <span>Upload</span>
-          </Link>
-          <Link to="/flashcards" className={`nav-link ${isActive('/flashcards') ? 'active' : ''}`}>
-            <Layers className="nav-icon" />
-            <span>Flashcards</span>
-          </Link>
-          <Link to="/quiz" className={`nav-link ${isActive('/quiz') ? 'active' : ''}`}>
-            <HelpCircle className="nav-icon" />
-            <span>Quiz</span>
-          </Link>
-          <Link to="/analytics" className={`nav-link ${isActive('/analytics') ? 'active' : ''}`}>
-            <BarChart3 className="nav-icon" />
-            <span>Analytics</span>
-          </Link>
+          
+          {/* Sidebar navigation list */}
+          <nav className="sidebar-nav">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
+                  onClick={() => setIsMobileOpen(false)}
+                >
+                  <Icon className="sidebar-link-icon" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
-        
-        <div className="nav-user-actions">
-          <span className="user-email" title={user.email}>
-            {user.email ? user.email.split('@')[0] : 'User'}
-          </span>
-          <button onClick={handleLogout} className="btn-logout" title="Logout">
-            <LogOut className="logout-icon" />
+
+        {/* Sidebar Footer: User details & Logout action */}
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <div className="sidebar-avatar" title={username}>
+              {userInitials}
+            </div>
+            <div className="sidebar-user-details">
+              <span className="sidebar-username" title={username}>{username}</span>
+              <span className="sidebar-useremail" title={user.email}>{user.email}</span>
+            </div>
+          </div>
+          <button onClick={handleLogout} className="sidebar-btn-logout" title="Logout">
+            <LogOut size={16} />
+            <span>Logout</span>
           </button>
         </div>
-      </div>
-    </nav>
+      </aside>
+    </>
   );
 };
 

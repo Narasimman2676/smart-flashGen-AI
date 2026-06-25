@@ -1,171 +1,286 @@
-/* Document Upload Styling */
+/* Premium Document Upload Page Styling */
 
 .upload-container {
-  max-width: 680px;
-  margin: 110px auto 40px;
-  padding: 0 20px;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
 
+/* Upload Panel Card */
 .upload-card {
-  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
 
-.upload-title {
-  font-size: 1.8rem;
+/* Steps Progress Header */
+.upload-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
   margin-bottom: 8px;
-  text-align: center;
 }
 
-.upload-subtitle {
+.upload-steps::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: hsl(var(--border-light));
+  z-index: 1;
+}
+
+.step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+
+.step-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: hsl(var(--bg-main));
+  border: 2px solid hsl(var(--border-light));
   color: hsl(var(--text-secondary));
-  text-align: center;
-  font-size: 0.95rem;
-  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
 }
 
-/* Drag and Drop Zone */
+.step-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: hsl(var(--text-secondary));
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+/* Active and Completed Steps States */
+.step-indicator.active .step-dot {
+  background-color: hsl(var(--bg-surface));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+  box-shadow: 0 0 12px hsl(var(--primary-glow));
+}
+
+.step-indicator.active .step-label {
+  color: hsl(var(--primary));
+}
+
+.step-indicator.completed .step-dot {
+  background-color: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: #ffffff;
+}
+
+.step-indicator.completed .step-label {
+  color: hsl(var(--text-primary));
+}
+
+/* ==========================================================================
+   Drag & Drop Zone Styling
+   ========================================================================== */
 .dropzone {
   border: 2px dashed hsl(var(--border-light));
   border-radius: var(--radius-lg);
   padding: 48px 24px;
   text-align: center;
   cursor: pointer;
-  background-color: hsl(var(--bg-main) / 20%);
+  background-color: rgba(244, 246, 248, 0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 16px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-bottom: 28px;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dropzone:hover, .dropzone.dragging {
   border-color: hsl(var(--primary));
   background-color: hsl(var(--primary-glow));
-  box-shadow: 0 0 20px hsl(var(--primary-glow));
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.04) inset;
 }
 
-.dropzone-icon {
-  width: 48px;
-  height: 48px;
-  color: hsl(var(--text-muted));
-  transition: transform 0.2s ease, color 0.2s ease;
+.dropzone-icon-container {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: hsl(var(--bg-surface));
+  color: hsl(var(--text-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  border: 1px solid hsl(var(--border-light));
 }
 
-.dropzone:hover .dropzone-icon, .dropzone.dragging .dropzone-icon {
-  transform: translateY(-4px);
+.dropzone:hover .dropzone-icon-container {
   color: hsl(var(--primary));
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+  transform: translateY(-2px);
 }
 
-.dropzone-text {
-  font-size: 0.95rem;
-  font-weight: 500;
+.dropzone-title {
+  font-size: 1.15rem;
+  font-weight: 600;
   color: hsl(var(--text-primary));
 }
 
-.dropzone-subtext {
-  font-size: 0.8rem;
-  color: hsl(var(--text-muted));
+.dropzone-subtitle {
+  font-size: 0.85rem;
+  color: hsl(var(--text-secondary));
 }
 
-.selected-file-info {
+/* File Selected Preview Panel */
+.file-preview-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid hsl(var(--border-light));
+  background-color: hsl(var(--bg-surface));
+  box-shadow: var(--shadow-sm);
+}
+
+.file-preview-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 18px;
-  background-color: hsl(var(--bg-main));
-  border: 1px solid hsl(var(--primary) / 30%);
-  border-radius: var(--radius-md);
-  margin-bottom: 24px;
-  font-size: 0.9rem;
-  color: hsl(var(--text-primary));
-  animation: slideDown 0.2s ease forwards;
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  overflow: hidden;
 }
 
 .file-icon {
   color: hsl(var(--primary));
 }
 
-/* Upload Configuration Fields */
-.config-group {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-@media (min-width: 576px) {
-  .config-group {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.topic-select-wrapper {
-  position: relative;
-}
-
-/* Steps Pipeline Animations */
-.pipeline-progress-container {
+.file-name-meta {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin: 20px 0;
-  padding: 24px;
-  background-color: hsl(var(--bg-main) / 40%);
-  border-radius: var(--radius-md);
-  border: 1px solid hsl(var(--border-light));
+  overflow: hidden;
 }
 
-.pipeline-step {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+.file-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: hsl(var(--text-primary));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-size {
+  font-size: 0.8rem;
+  color: hsl(var(--text-secondary));
+}
+
+.btn-remove-file {
+  background: transparent;
+  border: none;
   color: hsl(var(--text-muted));
-  font-size: 0.9rem;
-}
-
-.step-icon-status {
-  width: 20px;
-  height: 20px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 
-.step-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: hsl(var(--text-muted));
+.btn-remove-file:hover {
+  color: hsl(var(--error));
+  background-color: hsl(var(--error-glow));
 }
 
-.pipeline-step.active {
-  color: hsl(var(--primary));
+/* Topic Selection form controls */
+.upload-form-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 600px) {
+  .upload-form-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Status overlays / Parsers / Pipelines progress bar */
+.pipeline-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.pipeline-status-text {
   font-weight: 600;
+  color: hsl(var(--text-primary));
+  font-size: 1.05rem;
 }
 
-.pipeline-step.active .step-dot {
-  background-color: hsl(var(--primary));
-  box-shadow: 0 0 8px hsl(var(--primary));
+.pipeline-progress-track {
+  width: 100%;
+  height: 8px;
+  background-color: hsl(var(--border-light));
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
-.pipeline-step.completed {
-  color: #64e393;
+.pipeline-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, hsl(var(--primary)), #3b82f6);
+  border-radius: var(--radius-sm);
+  animation: progress-slide 2s ease-in-out infinite;
+  width: 35%;
 }
 
-.pipeline-step.completed .step-dot {
-  background-color: #64e393;
+@keyframes progress-slide {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(150%); }
+  100% { transform: translateX(300%); }
 }
 
-.pipeline-step.failed {
-  color: #ff8597;
+/* Success Animation and display */
+.upload-success-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  animation: fade-in 0.5s ease;
 }
 
-.pipeline-step.failed .step-dot {
-  background-color: #ff8597;
+.success-icon-animate {
+  color: hsl(var(--success));
+  animation: scale-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes scale-up {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

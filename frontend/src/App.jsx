@@ -10,24 +10,37 @@ import Flashcards from './pages/Flashcards';
 import Quiz from './pages/Quiz';
 import Analytics from './pages/Analytics';
 
+import { Outlet } from 'react-router-dom';
+
+// Layout component to render left sidebar and shift main content
+const Layout = () => {
+  return (
+    <div className="app-layout">
+      <Navbar />
+      <main className="app-main-content">
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
 function App() {
   return (
     <BrowserRouter>
-      {/* Navbar will render automatically if user is authenticated */}
-      <Navbar />
-      
       <Routes>
         {/* Authentication Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         
-        {/* Protected Dashboard and Study Routes */}
+        {/* Protected Dashboard and Study Routes wrapped in Sidebar Layout */}
         <Route element={<PrivateRoute />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/upload" element={<Upload />} />
-          <Route path="/flashcards" element={<Flashcards />} />
-          <Route path="/quiz" element={<Quiz />} />
-          <Route path="/analytics" element={<Analytics />} />
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/upload" element={<Upload />} />
+            <Route path="/flashcards" element={<Flashcards />} />
+            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/analytics" element={<Analytics />} />
+          </Route>
         </Route>
         
         {/* Fallback routing */}

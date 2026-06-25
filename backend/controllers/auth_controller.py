@@ -7,8 +7,14 @@ from flask_jwt_extended import create_access_token
 
 EMAIL_REGEX = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
-def validate_signup_input(email, password):
-    """Validate signup email and password."""
+def validate_signup_input(email, password, name=None):
+    """Validate signup email, password, and name."""
+    if name is not None:
+        if not name.strip():
+            return "Name is required."
+        if len(name.strip()) < 2:
+            return "Name must be at least 2 characters long."
+            
     if not email or not password:
         return "Email and password are required."
     
@@ -20,14 +26,15 @@ def validate_signup_input(email, password):
         
     return None
 
-def signup_user(email, password):
+def signup_user(email, password, name=None):
     """Register a new user in the database."""
-    validation_error = validate_signup_input(email, password)
+    validation_error = validate_signup_input(email, password, name)
     if validation_error:
         return {"error": validation_error}, 400
 
     # Normalise email (lowercase)
     email = email.strip().lower()
+    cleaned_name = name.strip() if name else None
 
     # Check if user already exists
     existing_user = db_session.query(User).filter_by(email=email).first()
@@ -37,7 +44,7 @@ def signup_user(email, password):
     try:
         # Hash password and create user
         hashed_password = generate_password_hash(password).decode('utf-8')
-        new_user = User(email=email, password_hash=hashed_password)
+        new_user = User(email=email, name=cleaned_name, password_hash=hashed_password)
         db_session.add(new_user)
         db_session.commit()
         return {"message": "User registered successfully.", "user_id": new_user.id}, 201
@@ -64,7 +71,8 @@ def login_user(email, password):
             "access_token": access_token,
             "user": {
                 "id": user.id,
-                "email": user.email
+                "email": user.email,
+                "name": user.name
             }
         }, 200
     except Exception as e:

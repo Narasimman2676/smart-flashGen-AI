@@ -10,8 +10,9 @@ def signup():
     data = request.get_json() or {}
     email = data.get('email')
     password = data.get('password')
+    name = data.get('name')
     
-    result, status_code = signup_user(email, password)
+    result, status_code = signup_user(email, password, name)
     return jsonify(result), status_code
 
 @auth_bp.route('/login', methods=['POST'])
